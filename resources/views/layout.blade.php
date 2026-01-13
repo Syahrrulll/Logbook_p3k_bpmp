@@ -116,10 +116,12 @@
                                     </div>
                                     <div class="flex flex-col">
                                         <span class="font-medium">Edit Profil</span>
-                                        <span class="text-[10px] text-gray-400">Foto & Password</span>
+                                        <span class="text-[10px] text-gray-400">Akun & Keamanan</span>
                                     </div>
                                 </a>
 
+                                <!-- HANYA MUNCUL JIKA USER BIASA (BUKAN ADMIN) -->
+                                @if(!str_contains(Auth::user()->email, 'admin'))
                                  <a href="{{ route('logbook.history') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors group">
                                      <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 group-hover:bg-purple-200 transition">
                                         <i class="fas fa-history text-xs"></i>
@@ -129,6 +131,7 @@
                                         <span class="text-[10px] text-gray-400">Laporan saya</span>
                                     </div>
                                 </a>
+                                @endif
                             </div>
 
                             <!-- Logout -->
@@ -191,8 +194,10 @@
                         <h4 class="font-bold text-lg border-l-4 border-cyan-400 pl-3">Navigasi Cepat</h4>
                         <ul class="space-y-2 text-sm text-blue-200">
                             <li><a href="{{ route('dashboard') }}" class="hover:text-white transition">Dashboard Utama</a></li>
-                            <li><a href="{{ route('logbook.create') }}" class="hover:text-white transition">Input Kegiatan</a></li>
-                            <li><a href="{{ route('logbook.history') }}" class="hover:text-white transition">Riwayat Laporan</a></li>
+                            @if(!str_contains(Auth::user()->email, 'admin'))
+                                <li><a href="{{ route('logbook.create') }}" class="hover:text-white transition">Input Kegiatan</a></li>
+                                <li><a href="{{ route('logbook.history') }}" class="hover:text-white transition">Riwayat Laporan</a></li>
+                            @endif
                             <li><a href="{{ route('profile.edit') }}" class="hover:text-white transition">Edit Profil</a></li>
                         </ul>
                     </div>

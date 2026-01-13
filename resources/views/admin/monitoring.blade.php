@@ -2,20 +2,30 @@
 
 @section('content')
 <div class="max-w-[95%] mx-auto px-4 sm:px-6 lg:px-8">
-    
+
     <!-- Header Admin -->
     <div class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
             <h2 class="text-2xl font-bold text-gray-900">Monitoring Kinerja Pegawai</h2>
             <p class="text-gray-500 text-sm">Panel Admin untuk melihat seluruh logbook yang masuk secara detail.</p>
         </div>
-        
-        <div class="flex items-center gap-3">
+
+        <div class="flex flex-wrap items-center gap-3">
             <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-blue-600 font-medium text-sm">← Dashboard</a>
-            
+
+            <!-- Tombol Export Excel -->
+            <a href="{{ route('admin.export', ['search' => request('search')]) }}" class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 shadow transition">
+                <i class="fas fa-file-excel"></i> Excel
+            </a>
+
+            <!-- Tombol Export PDF (BARU) -->
+            <a href="{{ route('admin.print', ['search' => request('search')]) }}" target="_blank" class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 shadow transition">
+                <i class="fas fa-file-pdf"></i> PDF / Cetak
+            </a>
+
             <!-- Pencarian Nama Pegawai -->
             <form action="{{ route('admin.monitoring') }}" method="GET" class="relative">
-                <input type="text" name="search" placeholder="Cari nama pegawai..." value="{{ request('search') }}" 
+                <input type="text" name="search" placeholder="Cari nama pegawai..." value="{{ request('search') }}"
                        class="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm w-64">
                 <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
             </form>
@@ -75,7 +85,7 @@
                         <!-- 3. Lokasi (Terpisah) -->
                         <td class="px-4 py-4 align-top">
                             <div class="flex items-start gap-1 text-gray-700">
-                                <span class="text-red-500 text-xs mt-0.5">📍</span> 
+                                <span class="text-red-500 text-xs mt-0.5">📍</span>
                                 <span>{{ $log->lokasi }}</span>
                             </div>
                         </td>
@@ -126,7 +136,7 @@
                 </tbody>
             </table>
         </div>
-        
+
         <!-- Pagination -->
         <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
             {{ $logs->withQueryString()->links() }}

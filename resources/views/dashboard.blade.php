@@ -53,7 +53,7 @@
                 </h3>
 
                 <a href="{{ route('admin.monitoring') }}"
-                   class="group block bg-gradient-to-r from-white to-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-2xl border border-blue-100 hover:border-yellow-400 transition-all duration-500 transform hover:-translate-y-1 sm:hover:-translate-y-2">
+                   class="group block bg-gradient-to-r from-cyan to-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-2xl border border-blue-100 hover:border-yellow-400 transition-all duration-500 transform hover:-translate-y-1 sm:hover:-translate-y-2">
                     <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                         <!-- Icon Area -->
                         <div class="relative">
@@ -108,7 +108,7 @@
 
             <div class="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <!-- Total Semua Logbook -->
-                <div class="bg-gradient-to-br from-white to-blue-50 p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                <div class="bg-gradient-to-br from- to-cyan blue-50 p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
                     <div class="flex items-center justify-between mb-3 sm:mb-4">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-400 to-cyan-300 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md">
                             <i class="fas fa-book text-white text-sm sm:text-base"></i>
@@ -122,7 +122,7 @@
                 </div>
 
                 <!-- Logbook Bulan Ini -->
-                <div class="bg-gradient-to-br from-white to-green-50 p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-green-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                <div class="bg-gradient-to-br from-cyan to-green-50 p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-green-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
                     <div class="flex items-center justify-between mb-3 sm:mb-4">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-400 to-emerald-300 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md">
                             <i class="fas fa-calendar-alt text-white text-sm sm:text-base"></i>
@@ -136,7 +136,7 @@
                 </div>
 
                 <!-- Logbook Hari Ini -->
-                <div class="bg-gradient-to-br from-white to-orange-50 p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                <div class="bg-gradient-to-br from-cyan to-orange-50 p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
                     <div class="flex items-center justify-between mb-3 sm:mb-4">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-400 to-amber-300 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md">
                             <i class="fas fa-bolt text-white text-sm sm:text-base"></i>

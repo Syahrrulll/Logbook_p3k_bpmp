@@ -38,4 +38,6 @@ Route::middleware('auth')->group(function () {
 
     // Admin
     Route::get('/admin/monitoring', [LogbookController::class, 'adminMonitoring'])->name('admin.monitoring');
+    Route::get('/admin/monitoring/export', [LogbookController::class, 'exportLogbooks'])->name('admin.export');
+    Route::get('/admin/monitoring/print', [LogbookController::class, 'printLogbooks'])->name('admin.print');
 });
