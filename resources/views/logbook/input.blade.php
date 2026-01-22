@@ -21,7 +21,7 @@
     </div>
 
     <!-- Form Container dengan efek glass -->
-    <div class="bg-gradient-to-br from-cyan to-blue-50/30 rounded-2xl sm:rounded-3xl shadow-2xl border border-blue-100/50 overflow-hidden backdrop-blur-sm">
+    <div class="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl sm:rounded-3xl shadow-2xl border border-blue-100/50 overflow-hidden backdrop-blur-sm">
         <!-- Header Form dengan gradasi -->
         <div class="relative overflow-hidden">
             <div class="bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-6 sm:px-8 py-5 sm:py-6">
@@ -34,35 +34,13 @@
                         <p class="text-blue-100 text-sm mt-0.5">Silakan isi data kinerja sesuai Sasaran Kerja Pegawai (SKP)</p>
                     </div>
                 </div>
-                <!-- Progress Steps -->
-                <div class="mt-4 sm:mt-6 flex items-center justify-between max-w-md">
-                    <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-white text-xs"></i>
-                        </div>
-                        <span class="text-white text-xs font-medium">Data Diri</span>
-                    </div>
-                    <div class="h-1 w-8 bg-white/40"></div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 bg-blue-400 rounded-full flex items-center justify-center">
-                            <span class="text-white text-xs font-bold">2</span>
-                        </div>
-                        <span class="text-white text-xs font-medium">Kegiatan</span>
-                    </div>
-                    <div class="h-1 w-8 bg-white/40"></div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
-                            <span class="text-gray-600 text-xs font-bold">3</span>
-                        </div>
-                        <span class="text-white text-xs font-medium">Selesai</span>
-                    </div>
-                </div>
             </div>
         </div>
 
         <!-- Form Content -->
         <div class="p-6 sm:p-8">
-            <form method="POST" action="{{ route('logbook.store') }}" enctype="multipart/form-data" class="space-y-6 sm:space-y-8">
+            <!-- Tambahkan ID spesifik pada form -->
+            <form id="logbookForm" method="POST" action="{{ route('logbook.store') }}" enctype="multipart/form-data" class="space-y-6 sm:space-y-8">
                 @csrf
 
                 <!-- User Info Card -->
@@ -92,7 +70,7 @@
                             <span>Tanggal Kegiatan</span>
                         </label>
                         <div class="relative">
-                            <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" required
+                            <input type="date" name="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}" required
                                    class="w-full border-2 border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-400 bg-white shadow-sm hover:shadow-md transition-all duration-300 group-hover:border-blue-300 cursor-pointer"
                                    onclick="this.showPicker()">
                             <div class="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400">
@@ -110,7 +88,7 @@
                             <span>Lokasi Kegiatan</span>
                         </label>
                         <div class="relative">
-                            <input type="text" name="lokasi" placeholder="Contoh: Aula BPMP, SMKN 1 Kendari..." required
+                            <input type="text" name="lokasi" value="{{ old('lokasi') }}" placeholder="Contoh: Aula BPMP, SMKN 1 Kendari..." required
                                    class="w-full border-2 border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-400 bg-white shadow-sm hover:shadow-md transition-all duration-300 group-hover:border-green-300">
                             <div class="absolute right-3 top-1/2 -translate-y-1/2 text-green-400">
                                 <i class="fas fa-location-dot"></i>
@@ -129,7 +107,7 @@
                         <span class="text-xs text-gray-500 ml-auto">Wajib diisi sesuai SKP</span>
                     </label>
                     <div class="relative">
-                        <input type="text" name="sasaran_pekerjaan" placeholder="Contoh: Meningkatnya layanan administrasi..." required
+                        <input type="text" name="sasaran_pekerjaan" value="{{ old('sasaran_pekerjaan') }}" placeholder="Contoh: Meningkatnya layanan administrasi..." required
                                class="w-full border-2 border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-400 bg-white shadow-sm hover:shadow-md transition-all duration-300 group-hover:border-purple-300">
                         <div class="absolute right-3 top-1/2 -translate-y-1/2 text-purple-400">
                             <i class="fas fa-target"></i>
@@ -148,14 +126,13 @@
                             <span>Jam Mulai</span>
                         </label>
                         <div class="relative">
-                            <input type="time" name="jam_mulai" value="07:30" required
+                            <input type="time" name="jam_mulai" value="{{ old('jam_mulai', '07:30') }}" required
                                    class="w-full border-2 border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-400 bg-white shadow-sm hover:shadow-md transition-all duration-300 group-hover:border-orange-300 cursor-pointer"
                                    onclick="this.showPicker()">
                             <div class="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400">
                                 <i class="fas fa-clock"></i>
                             </div>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1.5">Waktu mulai kegiatan</p>
                     </div>
 
                     <!-- Jam Selesai -->
@@ -167,14 +144,13 @@
                             <span>Jam Selesai</span>
                         </label>
                         <div class="relative">
-                            <input type="time" name="jam_selesai" value="16:00" required
+                            <input type="time" name="jam_selesai" value="{{ old('jam_selesai', '16:00') }}" required
                                    class="w-full border-2 border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-400 bg-white shadow-sm hover:shadow-md transition-all duration-300 group-hover:border-red-300 cursor-pointer"
                                    onclick="this.showPicker()">
                             <div class="absolute right-3 top-1/2 -translate-y-1/2 text-red-400">
                                 <i class="fas fa-clock"></i>
                             </div>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1.5">Waktu selesai kegiatan</p>
                     </div>
                 </div>
 
@@ -207,7 +183,7 @@
                     </label>
                     <div class="relative">
                         <textarea name="kegiatan" rows="4" placeholder="Deskripsikan kegiatan yang Anda lakukan hari ini secara detail..." required
-                                  class="w-full border-2 border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-400 bg-white shadow-sm hover:shadow-md transition-all duration-300 group-hover:border-indigo-300 resize-none"></textarea>
+                                  class="w-full border-2 border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-400 bg-white shadow-sm hover:shadow-md transition-all duration-300 group-hover:border-indigo-300 resize-none">{{ old('kegiatan') }}</textarea>
                         <div class="absolute right-3 top-3 text-indigo-400">
                             <i class="fas fa-edit"></i>
                         </div>
@@ -226,7 +202,7 @@
                         <span>Hasil / Output</span>
                     </label>
                     <div class="relative">
-                        <input type="text" name="output" placeholder="Contoh: Laporan Selesai, Dokumen Terverifikasi, Rapat Selesai..." required
+                        <input type="text" name="output" value="{{ old('output') }}" placeholder="Contoh: Laporan Selesai, Dokumen Terverifikasi, Rapat Selesai..." required
                                class="w-full border-2 border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-400 bg-white shadow-sm hover:shadow-md transition-all duration-300 group-hover:border-green-300">
                         <div class="absolute right-3 top-1/2 -translate-y-1/2 text-green-400">
                             <i class="fas fa-flag-checkered"></i>
@@ -274,7 +250,7 @@
                                         <p id="fileName" class="font-medium text-green-600"></p>
                                         <p id="fileSize" class="text-sm text-gray-500"></p>
                                     </div>
-                                    <button type="button" onclick="removeFile()" class="inline-flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-full transition-colors">
+                                    <button type="button" onclick="removeFile(); event.stopPropagation();" class="inline-flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-full transition-colors">
                                         <i class="fas fa-trash"></i>
                                         <span>Hapus Foto</span>
                                     </button>
@@ -400,6 +376,8 @@ if (textarea) {
             charCount.classList.add('text-gray-400');
         }
     });
+    // Trigger input event to set initial count if value exists (from old input)
+    if(textarea.value.length > 0) textarea.dispatchEvent(new Event('input'));
 }
 
 // Calculate Duration
@@ -482,44 +460,52 @@ if (dropZone) {
     });
 }
 
-// Form validation on submit
-document.querySelector('form').addEventListener('submit', function(e) {
-    const requiredFields = this.querySelectorAll('[required]');
-    let isValid = true;
+// Form validation on submit - PERBAIKAN: Target ID Form Spesifik
+const form = document.getElementById('logbookForm');
+if (form) {
+    form.addEventListener('submit', function(e) {
+        const requiredFields = this.querySelectorAll('[required]');
+        let isValid = true;
 
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            field.classList.add('border-red-500');
-            isValid = false;
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500');
+                isValid = false;
 
-            // Add shake animation
-            field.style.animation = 'shake 0.5s ease-in-out';
-            setTimeout(() => {
-                field.style.animation = '';
-            }, 500);
-        } else {
-            field.classList.remove('border-red-500');
+                // Add shake animation
+                field.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    field.style.animation = '';
+                }, 500);
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+
+            // Show error message via Toast
+            if (typeof showToast === 'function') {
+                showToast('Harap isi semua bidang yang wajib diisi!', 'error');
+            } else {
+                alert('Harap isi semua bidang yang wajib diisi!');
+            }
         }
     });
+}
 
-    if (!isValid) {
-        e.preventDefault();
-
-        // Show error message
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg z-50';
-        errorDiv.innerHTML = `
-            <div class="flex items-center gap-3">
-                <i class="fas fa-exclamation-circle"></i>
-                <span>Harap isi semua bidang yang wajib diisi!</span>
-            </div>
-        `;
-        document.body.appendChild(errorDiv);
-
-        setTimeout(() => {
-            errorDiv.remove();
-        }, 3000);
-    }
+// Display Server Side Errors
+document.addEventListener('DOMContentLoaded', function() {
+    @if($errors->any())
+        let errorMsg = '';
+        @foreach($errors->all() as $error)
+            errorMsg += '{{ $error }} ';
+        @endforeach
+        if (typeof showToast === 'function') {
+            showToast(errorMsg, 'error');
+        }
+    @endif
 });
 
 // Add CSS animations

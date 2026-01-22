@@ -173,45 +173,6 @@
         @yield('content')
     </main>
 
-    <!-- Footer -->
-    <footer class="mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-gradient-to-b from-blue-800 to-blue-900 text-white py-8 px-6 rounded-t-3xl shadow-2xl">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-book text-white"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-lg">E-Logbook P3K</h3>
-                                <p class="text-blue-200 text-sm">Sistem Pelaporan Digital</p>
-                            </div>
-                        </div>
-                        <p class="text-blue-300 text-sm">Platform digital untuk pencatatan dan monitoring kegiatan harian pegawai secara real-time.</p>
-                    </div>
-                    <div class="space-y-4">
-                        <h4 class="font-bold text-lg border-l-4 border-cyan-400 pl-3">Navigasi Cepat</h4>
-                        <ul class="space-y-2 text-sm text-blue-200">
-                            <li><a href="{{ route('dashboard') }}" class="hover:text-white transition">Dashboard Utama</a></li>
-                            @if(!str_contains(Auth::user()->email, 'admin'))
-                                <li><a href="{{ route('logbook.create') }}" class="hover:text-white transition">Input Kegiatan</a></li>
-                                <li><a href="{{ route('logbook.history') }}" class="hover:text-white transition">Riwayat Laporan</a></li>
-                            @endif
-                            <li><a href="{{ route('profile.edit') }}" class="hover:text-white transition">Edit Profil</a></li>
-                        </ul>
-                    </div>
-                    <div class="space-y-4">
-                        <h4 class="font-bold text-lg border-l-4 border-cyan-400 pl-3">Kontak & Support</h4>
-                        <p class="text-sm text-blue-200">Support: help@elogbook.id<br>Sistem Terenkripsi & Aman</p>
-                    </div>
-                </div>
-                <div class="mt-8 pt-6 border-t border-blue-700/50 text-center text-sm text-blue-300">
-                    &copy; {{ date('Y') }} Sistem Informasi BPMP.
-                </div>
-            </div>
-        </div>
-    </footer>
 
     <!-- Scripts -->
     <script>
