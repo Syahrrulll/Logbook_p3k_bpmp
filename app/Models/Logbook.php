@@ -12,12 +12,13 @@ class Logbook extends Model
     protected $fillable = [
         'user_id',
         'tanggal',
-        'lokasi', 
+        'lokasi',
         'sasaran_pekerjaan',
         'jam_mulai',
         'jam_selesai',
         'kegiatan',
         'output',
+        'link_bukti', // Tambahkan ini
         'bukti_foto',
     ];
 

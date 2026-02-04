@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
 
-    <!-- Header dengan Gradient Text & Tombol Aksi -->
+    <!-- Header dengan Gradient & Tombol Aksi -->
     <div class="mb-10">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
             <div>
@@ -91,6 +91,9 @@
                     <i class="fas fa-filter text-xl"></i>
                 </div>
                 <h3 class="text-lg font-bold text-gray-800">Filter Data Tabel</h3>
+                @if(request()->has('user_id') || request()->has('search') || request()->has('start_date'))
+                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold">Filter Aktif</span>
+                @endif
             </div>
 
             <form action="{{ route('admin.monitoring') }}" method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
@@ -99,7 +102,7 @@
                     <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Pegawai</label>
                     <div class="relative group">
                         <i class="fas fa-user absolute left-3 top-3 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
-                        <select name="user_id" class="w-full pl-10 border-gray-200 bg-gray-50 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-white">
+                        <select name="user_id" class="w-full pl-10 border-gray-200 bg-gray-50 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-white appearance-none">
                             <option value="">Semua Pegawai</option>
                             @foreach($users as $user)
                                 @if(!str_contains($user->email, 'admin'))
@@ -112,30 +115,37 @@
                     </div>
                 </div>
 
-                <!-- Filter Tanggal -->
-                <div class="md:col-span-3">
-                    <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Tanggal</label>
+                <!-- Filter Tanggal Mulai -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Dari Tanggal</label>
                     <div class="relative group">
-                        <i class="fas fa-calendar absolute left-3 top-3 text-gray-400 group-focus-within:text-purple-500 transition-colors"></i>
-                        <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full pl-10 border-gray-200 bg-gray-50 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all hover:bg-white cursor-pointer">
+                        <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full border-gray-200 bg-gray-50 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all hover:bg-white cursor-pointer px-3 py-2.5">
+                    </div>
+                </div>
+
+                <!-- Filter Tanggal Selesai -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Sampai Tanggal</label>
+                    <div class="relative group">
+                        <input type="date" name="end_date" value="{{ request('end_date') }}" class="w-full border-gray-200 bg-gray-50 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all hover:bg-white cursor-pointer px-3 py-2.5">
                     </div>
                 </div>
 
                 <!-- Pencarian -->
-                <div class="md:col-span-4">
+                <div class="md:col-span-3">
                     <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Cari Kata Kunci</label>
                     <div class="relative group">
                         <i class="fas fa-search absolute left-3 top-3 text-gray-400 group-focus-within:text-pink-500 transition-colors"></i>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kegiatan, lokasi, output..." class="w-full pl-10 border-gray-200 bg-gray-50 rounded-xl text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all hover:bg-white">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Kegiatan, Output..." class="w-full pl-10 border-gray-200 bg-gray-50 rounded-xl text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all hover:bg-white py-2.5">
                     </div>
                 </div>
 
                 <!-- Tombol -->
                 <div class="md:col-span-2 flex gap-2">
                     <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5">
-                        Terapkan
+                        Filter
                     </button>
-                    <a href="{{ route('admin.monitoring') }}" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2.5 rounded-xl text-sm font-bold shadow-sm transition hover:rotate-180 duration-500" title="Reset">
+                    <a href="{{ route('admin.monitoring') }}" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2.5 rounded-xl text-sm font-bold shadow-sm transition hover:rotate-180 duration-500 flex items-center justify-center" title="Reset Filter">
                         <i class="fas fa-undo"></i>
                     </a>
                 </div>
@@ -155,7 +165,7 @@
                         <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider w-40">
                             <i class="fas fa-clock mr-2 opacity-70"></i>Waktu
                         </th>
-                        <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider w-48">
+                        <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider w-40">
                             <i class="fas fa-map-marked-alt mr-2 opacity-70"></i>Lokasi
                         </th>
                         <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider w-1/4">
@@ -164,8 +174,13 @@
                         <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider">
                             <i class="fas fa-check-circle mr-2 opacity-70"></i>Output
                         </th>
+                        <!-- Kolom Baru Link Bukti -->
+                        <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider w-40">
+                            <i class="fas fa-link mr-2 opacity-70"></i>Link Bukti
+                        </th>
+                        <!-- Kolom Foto -->
                         <th class="px-6 py-5 text-center text-xs font-bold uppercase tracking-wider w-24 rounded-tr-lg">
-                            <i class="fas fa-image mr-2 opacity-70"></i>Bukti
+                            <i class="fas fa-image mr-2 opacity-70"></i>Foto
                         </th>
                     </tr>
                 </thead>
@@ -183,7 +198,7 @@
                                     @endif
                                 </div>
                                 <div>
-                                    <a href="{{ route('admin.monitoring', ['user_id' => $log->user_id]) }}" class="font-bold text-gray-900 hover:text-blue-600 hover:underline transition-colors block text-sm">
+                                    <a href="{{ route('admin.monitoring', ['user_id' => $log->user_id]) }}" class="font-bold text-gray-900 hover:text-blue-600 hover:underline transition-colors block text-sm" title="Filter pegawai ini">
                                         {{ $log->user->name }}
                                     </a>
                                     <div class="text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full inline-block mt-1 border border-gray-200">
@@ -233,12 +248,23 @@
                             </span>
                         </td>
 
-                        <!-- Bukti -->
+                        <!-- Link Bukti (Kolom Baru) -->
+                        <td class="px-6 py-4 align-top">
+                            @if($log->link_bukti)
+                                <a href="{{ $log->link_bukti }}" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline text-xs break-all block p-2 bg-blue-50 rounded-lg border border-blue-100 transition hover:bg-blue-100">
+                                    <i class="fas fa-external-link-alt mr-1"></i>
+                                    {{ Str::limit($log->link_bukti, 40) }}
+                                </a>
+                            @else
+                                <span class="text-xs text-gray-400 italic bg-gray-50 px-2 py-1 rounded">-</span>
+                            @endif
+                        </td>
+
+                        <!-- Bukti (Foto Saja) -->
                         <td class="px-6 py-4 align-top text-center">
                             @if($log->bukti_foto)
-                                <a href="{{ asset('storage/' . $log->bukti_foto) }}" target="_blank" class="inline-block group relative">
+                                <a href="{{ asset('storage/' . $log->bukti_foto) }}" target="_blank" class="inline-block group relative" title="Lihat Foto">
                                     <img src="{{ asset('storage/' . $log->bukti_foto) }}" class="w-12 h-12 object-cover rounded-xl border-2 border-white shadow-md group-hover:scale-150 transition-transform duration-300 z-10 cursor-zoom-in">
-                                    <div class="absolute inset-0 bg-black/20 rounded-xl group-hover:bg-transparent transition-colors"></div>
                                 </a>
                             @else
                                 <div class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-200 mx-auto text-gray-300">
@@ -249,7 +275,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-20 text-center">
+                        <td colspan="7" class="px-6 py-20 text-center">
                             <div class="flex flex-col items-center justify-center">
                                 <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                                     <i class="fas fa-folder-open text-4xl text-gray-300"></i>

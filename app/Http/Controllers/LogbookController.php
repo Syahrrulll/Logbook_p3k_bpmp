@@ -12,25 +12,36 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class LogbookController extends Controller
 {
     /**
+     * =========================================================================
+     * BAGIAN 1: DASHBOARD & USER BIASA
+     * =========================================================================
+     */
+
+    /**
      * Menampilkan Dashboard Utama
-     * - User Biasa: Melihat statistik pribadi dan feed galeri.
-     * - Admin: Melihat statistik keseluruhan dan feed galeri.
+     * Logika:
+     * - Admin melihat statistik seluruh pegawai.
+     * - User biasa melihat statistik dirinya sendiri.
+     * - Feed Galeri menampilkan 6 aktivitas acak dari pegawai lain.
      */
     public function dashboard()
     {
         $user = Auth::user();
 
-        // 1. Data untuk Statistik
-        // Jika admin, ambil query kosong (nanti difilter di view atau ambil semua)
-        // Jika user biasa, filter berdasarkan ID user
-        $queryStats = str_contains($user->email, 'admin') ? Logbook::query() : Logbook::where('user_id', $user->id);
+        // 1. Logika Statistik (Admin vs User)
+        if (str_contains($user->email, 'admin')) {
+            // Admin: Query kosong (agar bisa menghitung semua data)
+            $queryStats = Logbook::query();
+        } else {
+            // User: Hanya data miliknya
+            $queryStats = Logbook::where('user_id', $user->id);
+        }
 
-        // Ambil data untuk statistik ringkas, diurutkan dari yang terbaru
+        // Ambil data logbook diurutkan dari yang terbaru
         $logs = $queryStats->orderBy('tanggal', 'desc')->get();
 
-        // 2. Data Feed Galeri (Random dari SEMUA pegawai)
-        // Mengambil 6 data acak untuk ditampilkan seperti postingan di dashboard
-        // Menggunakan 'with user' agar nama pegawai pemilik logbook bisa ditampilkan
+        // 2. Data Feed Galeri (Random)
+        // Mengambil 6 data acak untuk ditampilkan di dashboard sebagai "Feed"
         $feedLogs = Logbook::with('user')
                            ->inRandomOrder()
                            ->limit(6)
@@ -40,7 +51,7 @@ class LogbookController extends Controller
     }
 
     /**
-     * Menampilkan Halaman Input Logbook
+     * Menampilkan Halaman Form Input Logbook
      */
     public function create()
     {
@@ -48,14 +59,14 @@ class LogbookController extends Controller
     }
 
     /**
-     * Menampilkan Riwayat Logbook Pribadi (User)
+     * Menampilkan Riwayat Logbook Pribadi (Tabel)
      */
     public function history()
     {
         $user = Auth::user();
 
-        // User hanya melihat datanya sendiri di halaman riwayat
-        // Menggunakan pagination 10 item per halaman agar tidak berat
+        // User hanya melihat datanya sendiri
+        // Pagination 10 item per halaman
         $logs = Logbook::where('user_id', $user->id)
                        ->orderBy('tanggal', 'desc')
                        ->paginate(10);
@@ -64,39 +75,41 @@ class LogbookController extends Controller
     }
 
     /**
-     * Menyimpan Data Logbook Baru ke Database
+     * Menyimpan Data Logbook Baru (Store)
      */
     public function store(Request $request)
     {
-        // Validasi Input
+        // 1. Validasi Input
         $request->validate([
-            'tanggal' => 'required|date',
-            'lokasi' => 'required|string',
-            'sasaran_pekerjaan' => 'required|string',
-            'jam_mulai' => 'required',
-            'jam_selesai' => 'required',
-            'kegiatan' => 'required|string',
-            'output' => 'required|string',
-            'bukti_foto' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // Maksimal 5MB
+            'tanggal'           => 'required|date',
+            'lokasi'            => 'required|string|max:255',
+            'sasaran_pekerjaan' => 'required|string|max:255',
+            'jam_mulai'         => 'required',
+            'jam_selesai'       => 'required',
+            'kegiatan'          => 'required|string',
+            'output'            => 'required|string',
+            'link_bukti'        => 'nullable|url', // Validasi format URL
+            'bukti_foto'        => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // Max 5MB
         ]);
 
-        // Proses Upload Foto (Jika ada)
+        // 2. Proses Upload Foto (Jika ada)
         $pathFoto = null;
         if ($request->hasFile('bukti_foto')) {
             $pathFoto = $request->file('bukti_foto')->store('bukti_kegiatan', 'public');
         }
 
-        // Simpan Data ke Database
+        // 3. Simpan ke Database
         Logbook::create([
-            'user_id' => Auth::id(),
-            'tanggal' => $request->tanggal,
-            'lokasi' => $request->lokasi,
+            'user_id'           => Auth::id(),
+            'tanggal'           => $request->tanggal,
+            'lokasi'            => $request->lokasi,
             'sasaran_pekerjaan' => $request->sasaran_pekerjaan,
-            'jam_mulai' => $request->jam_mulai,
-            'jam_selesai' => $request->jam_selesai,
-            'kegiatan' => $request->kegiatan,
-            'output' => $request->output,
-            'bukti_foto' => $pathFoto,
+            'jam_mulai'         => $request->jam_mulai,
+            'jam_selesai'       => $request->jam_selesai,
+            'kegiatan'          => $request->kegiatan,
+            'output'            => $request->output,
+            'link_bukti'        => $request->link_bukti,
+            'bukti_foto'        => $pathFoto,
         ]);
 
         return redirect()->route('logbook.history')->with('success', 'Kegiatan berhasil disimpan!');
@@ -109,7 +122,7 @@ class LogbookController extends Controller
     {
         $logbook = Logbook::findOrFail($id);
 
-        // Keamanan: Pastikan yang edit adalah pemilik data
+        // Keamanan: Pastikan yang mengedit adalah pemilik data
         if ($logbook->user_id !== Auth::id()) {
             return redirect()->route('logbook.history')->with('error', 'Anda tidak berhak mengedit data ini.');
         }
@@ -124,29 +137,30 @@ class LogbookController extends Controller
     {
         $logbook = Logbook::findOrFail($id);
 
-        // Keamanan: Pastikan pemilik yang melakukan update
+        // Keamanan: Cek kepemilikan
         if ($logbook->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Validasi Input
+        // 1. Validasi
         $request->validate([
-            'tanggal' => 'required|date',
-            'lokasi' => 'required|string',
+            'tanggal'           => 'required|date',
+            'lokasi'            => 'required|string',
             'sasaran_pekerjaan' => 'required|string',
-            'jam_mulai' => 'required',
-            'jam_selesai' => 'required',
-            'kegiatan' => 'required|string',
-            'output' => 'required|string',
-            'bukti_foto' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+            'jam_mulai'         => 'required',
+            'jam_selesai'       => 'required',
+            'kegiatan'          => 'required|string',
+            'output'            => 'required|string',
+            'link_bukti'        => 'nullable|url',
+            'bukti_foto'        => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
-        // Ambil semua input kecuali foto (foto diproses terpisah)
+        // 2. Ambil data input kecuali foto (karena foto butuh penanganan khusus)
         $data = $request->except(['bukti_foto']);
 
-        // Cek jika ada upload foto baru
+        // 3. Cek jika ada upload foto baru
         if ($request->hasFile('bukti_foto')) {
-            // Hapus foto lama dari storage agar server tidak penuh
+            // Hapus foto lama dari storage untuk menghemat ruang
             if ($logbook->bukti_foto) {
                 Storage::disk('public')->delete($logbook->bukti_foto);
             }
@@ -154,7 +168,7 @@ class LogbookController extends Controller
             $data['bukti_foto'] = $request->file('bukti_foto')->store('bukti_kegiatan', 'public');
         }
 
-        // Update data di database
+        // 4. Update Database
         $logbook->update($data);
 
         return redirect()->route('logbook.history')->with('success', 'Logbook berhasil diperbarui!');
@@ -167,7 +181,7 @@ class LogbookController extends Controller
     {
         $logbook = Logbook::findOrFail($id);
 
-        // Keamanan: Pastikan pemilik yang menghapus
+        // Keamanan: Cek kepemilikan
         if ($logbook->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
@@ -177,43 +191,49 @@ class LogbookController extends Controller
             Storage::disk('public')->delete($logbook->bukti_foto);
         }
 
-        // Hapus data dari database
+        // Hapus record dari database
         $logbook->delete();
 
         return redirect()->route('logbook.history')->with('success', 'Data logbook berhasil dihapus.');
     }
 
-    // =========================================================================
-    // FITUR KHUSUS ADMIN (MONITORING, EXPORT, PRINT)
-    // =========================================================================
+    /**
+     * =========================================================================
+     * BAGIAN 2: FITUR KHUSUS ADMIN (MONITORING, EXPORT, PRINT)
+     * =========================================================================
+     */
 
     /**
-     * Helper function untuk menerapkan filter pencarian
+     * Helper Function: Menerapkan Filter Query
      * Digunakan oleh: adminMonitoring, exportLogbooks, printLogbooks
+     * Agar kita tidak perlu menulis ulang logika filter di 3 tempat berbeda.
      */
     private function applyFilters($query, Request $request)
     {
-        // Filter by User (Per Orang)
+        // 1. Filter Berdasarkan Pegawai (Per Orang)
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
         }
 
-        // Filter Rentang Tanggal (Start Date)
+        // 2. Filter Rentang Tanggal (Mulai)
         if ($request->filled('start_date')) {
             $query->whereDate('tanggal', '>=', $request->start_date);
         }
 
-        // Filter Rentang Tanggal (End Date)
+        // 3. Filter Rentang Tanggal (Selesai)
         if ($request->filled('end_date')) {
             $query->whereDate('tanggal', '<=', $request->end_date);
         }
 
-        // Pencarian Text (Nama atau Kegiatan)
+        // 4. Filter Pencarian Teks (Search)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('kegiatan', 'like', "%{$search}%")
                   ->orWhere('sasaran_pekerjaan', 'like', "%{$search}%")
+                  ->orWhere('lokasi', 'like', "%{$search}%")
+                  ->orWhere('output', 'like', "%{$search}%")
+                  // Cari juga berdasarkan nama pegawai
                   ->orWhereHas('user', function($subQ) use ($search) {
                       $subQ->where('name', 'like', "%{$search}%");
                   });
@@ -225,33 +245,55 @@ class LogbookController extends Controller
 
     /**
      * Halaman Monitoring Khusus Admin
+     * Menampilkan tabel data semua pegawai dengan fitur filter.
      */
     public function adminMonitoring(Request $request)
     {
         $user = Auth::user();
 
-        // Cek Hak Akses (Hanya email yang mengandung 'admin' yang boleh akses)
+        // Cek Hak Akses (Hanya email yang mengandung 'admin')
         if (!str_contains($user->email, 'admin')) {
             return redirect()->route('dashboard')->with('error', 'Akses ditolak. Halaman ini khusus Admin.');
         }
 
-        // Ambil list semua user untuk dropdown filter
+        // Ambil daftar semua user untuk dropdown filter
         $users = User::orderBy('name')->get();
 
-        // Query Utama: Ambil logbook beserta data user
+        // Mulai Query Logbook dengan Eager Loading user (biar query cepat)
         $query = Logbook::with('user');
 
-        // Terapkan filter dari request
+        // Terapkan Filter (menggunakan helper di atas)
         $query = $this->applyFilters($query, $request);
 
-        // Tampilkan 15 data per halaman, urutkan dari terbaru
+        // Ambil data dengan Pagination (15 per halaman)
         $logs = $query->orderBy('tanggal', 'desc')->paginate(15);
 
-        return view('admin.monitoring', compact('logs', 'users'));
+        // Jika sedang memfilter User ID tertentu, ambil data user tersebut (untuk judul halaman opsional)
+        $selectedUser = null;
+        if($request->filled('user_id')){
+            $selectedUser = User::find($request->user_id);
+        }
+
+        return view('admin.monitoring', compact('logs', 'users', 'selectedUser'));
     }
 
     /**
-     * Fitur Export Data ke CSV (Bisa dibuka di Excel)
+     * Helper: Route pintas untuk melihat logbook per orang
+     * Contoh penggunaan: <a href="{{ route('admin.user.logbook', $user->id) }}">
+     */
+    public function showUserLogbook($userId)
+    {
+        // Kita gunakan logika yang sama dengan adminMonitoring,
+        // tapi kita paksa inject user_id ke dalam request.
+        $request = request();
+        $request->merge(['user_id' => $userId]);
+
+        return $this->adminMonitoring($request);
+    }
+
+    /**
+     * Fitur Export Data ke CSV (Kompatibel dengan Excel)
+     * Mengunduh data sesuai dengan filter yang sedang aktif.
      */
     public function exportLogbooks(Request $request)
     {
@@ -261,12 +303,14 @@ class LogbookController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        // Query data dengan filter yang sama seperti di monitoring
+        // Query data (gunakan filter yang sama)
         $query = Logbook::with('user');
         $query = $this->applyFilters($query, $request);
+
+        // Ambil SEMUA data (tanpa pagination) untuk diexport
         $logs = $query->orderBy('tanggal', 'desc')->get();
 
-        // Konfigurasi Header untuk Download File CSV
+        // Header HTTP untuk download file
         $headers = [
             "Content-type" => "text/csv",
             "Content-Disposition" => "attachment; filename=rekap_logbook_" . date('Y-m-d_H-i') . ".csv",
@@ -275,14 +319,25 @@ class LogbookController extends Controller
             "Expires" => "0"
         ];
 
-        // Callback untuk menulis isi CSV
+        // Fungsi Callback untuk menulis baris CSV
         $callback = function() use ($logs) {
             $file = fopen('php://output', 'w');
 
-            // Tulis Header Kolom Excel
-            fputcsv($file, ['No', 'Nama Pegawai', 'Email', 'Tanggal', 'Waktu', 'Lokasi', 'Sasaran SKP', 'Uraian Kegiatan', 'Output']);
+            // Tulis Judul Kolom (Header CSV)
+            fputcsv($file, [
+                'No',
+                'Nama Pegawai',
+                'Email',
+                'Tanggal',
+                'Waktu',
+                'Lokasi',
+                'Sasaran SKP',
+                'Uraian Kegiatan',
+                'Output',
+                'Link Bukti'
+            ]);
 
-            // Tulis Data Baris per Baris
+            // Loop data dan tulis baris per baris
             foreach ($logs as $index => $log) {
                 fputcsv($file, [
                     $index + 1,
@@ -293,7 +348,8 @@ class LogbookController extends Controller
                     $log->lokasi,
                     $log->sasaran_pekerjaan,
                     $log->kegiatan,
-                    $log->output
+                    $log->output,
+                    $log->link_bukti // Sertakan link bukti dalam export
                 ]);
             }
             fclose($file);
@@ -303,7 +359,8 @@ class LogbookController extends Controller
     }
 
     /**
-     * Fitur Cetak Laporan (PDF via Browser Print)
+     * Fitur Cetak Laporan (View PDF)
+     * Menampilkan halaman siap cetak sesuai filter.
      */
     public function printLogbooks(Request $request)
     {
@@ -313,11 +370,21 @@ class LogbookController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        // Query data dengan filter yang sama
+        // Query data (gunakan filter yang sama)
         $query = Logbook::with('user');
         $query = $this->applyFilters($query, $request);
+
+        // Ambil SEMUA data untuk dicetak
         $logs = $query->orderBy('tanggal', 'desc')->get();
 
-        return view('admin.print', compact('logs'));
+        // Siapkan info filter untuk ditampilkan di Kop Surat (Opsional)
+        $filterInfo = [];
+        if($request->filled('start_date')) $filterInfo[] = "Periode: " . $request->start_date . " s.d " . $request->end_date;
+        if($request->filled('user_id')) {
+            $u = User::find($request->user_id);
+            if($u) $filterInfo[] = "Pegawai: " . $u->name;
+        }
+
+        return view('admin.print', compact('logs', 'filterInfo'));
     }
 }
