@@ -25,22 +25,47 @@
         </div>
     @endif
 
+    @php
+        $historyCollection = isset($logs) && method_exists($logs, 'getCollection') ? $logs->getCollection() : $logs;
+        $duplicateCount = $historyCollection->where('is_duplicate', true)->count();
+    @endphp
+    @if($duplicateCount > 0)
+        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+            <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+            <div>
+                <p class="font-semibold text-red-800">
+                    {{ $duplicateCount }} entri terdeteksi sebagai duplikat
+                </p>
+                <p class="text-sm text-red-600">
+                    Baris yang diarsir merah menunjukkan entri yang sama persis atau duplikat dengan entri lain.
+                </p>
+            </div>
+        </div>
+    @endif
+
     <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-50 text-gray-600 uppercase text-xs font-bold border-b border-gray-200">
                     <tr>
+                        <th class="px-6 py-4 w-16">No</th>
                         <th class="px-6 py-4 w-24">Bukti</th>
                         <th class="px-6 py-4 w-32">Waktu</th>
                         <th class="px-6 py-4 w-1/5">Lokasi</th>
                         <th class="px-6 py-4 w-1/5">Sasaran SKP</th>
                         <th class="px-6 py-4">Uraian Kegiatan</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            Kategori
+                        </th>
                         <th class="px-6 py-4 w-1/6">Aksi</th> <!-- Kolom Aksi -->
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse ($logs as $log)
-                    <tr class="hover:bg-blue-50/30 transition-colors">
+                    <tr class="{{ $log->is_duplicate ? 'bg-red-50' : '' }} hover:bg-blue-50/50 transition-colors">
+                        <td class="px-6 py-4 align-top text-sm text-gray-600">
+                            {{ (method_exists($logs, 'firstItem') ? $logs->firstItem() : 1) + $loop->index }}.
+                        </td>
                         <td class="px-6 py-4 align-top">
                             @if($log->bukti_foto)
                                 <a href="{{ asset('storage/' . $log->bukti_foto) }}" target="_blank">
@@ -75,6 +100,16 @@
                             <div class="text-xs text-gray-500 mt-1">Output: {{ $log->output }}</div>
                         </td>
 
+                        <td class="px-4 py-3 text-sm align-top">
+                            @include('components.kategori-badge', ['logbook' => $log])
+                            @if($log->is_duplicate && $log->originalEntry)
+                                <div class="mt-1 text-xs text-red-600">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Duplikat dari entri No. {{ $rowNumbers[$log->originalEntry->id] ?? $log->originalEntry->id }}
+                                </div>
+                            @endif
+                        </td>
+
                         <!-- Tombol Aksi -->
                         <td class="px-6 py-4 align-top">
                             <div class="flex items-center gap-2">
@@ -94,7 +129,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-16 text-center text-gray-500">
+                        <td colspan="8" class="px-6 py-16 text-center text-gray-500">
                             <p class="text-xl">📭</p>
                             <p class="mt-2">Belum ada data logbook.</p>
                         </td>

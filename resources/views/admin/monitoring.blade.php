@@ -7,6 +7,15 @@
 
     <!-- Header dengan Gradient & Tombol Aksi -->
     <div class="mb-10">
+        @php
+            $logCollection = isset($logs) && method_exists($logs, 'getCollection') ? $logs->getCollection() : $logs;
+            $duplicateCount = $logCollection->where('is_duplicate', true)->count();
+            $categoryCount = $logCollection->pluck('kategori_ai')->filter()->unique()->count();
+            $todayCount = $logCollection->filter(function ($item) {
+                return \Carbon\Carbon::parse($item->tanggal)->isToday();
+            })->count();
+        @endphp
+
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
             <div>
                 <h2 class="text-4xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-gradient-x">
@@ -61,13 +70,30 @@
                 </div>
             </div>
 
+            <!-- Card 4: Kategori Terdeteksi (Amber Gradient) -->
+            <div class="relative overflow-hidden bg-gradient-to-br from-orange-500 to-yellow-400 rounded-3xl p-6 shadow-xl text-white transform hover:-translate-y-2 transition-transform duration-300">
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-20 rounded-full blur-xl"></div>
+                <div class="relative z-10 flex justify-between items-start">
+                    <div>
+                        <p class="text-orange-100 font-semibold tracking-wider uppercase text-xs">Kategori Terdeteksi</p>
+                        <h3 class="text-4xl font-extrabold mt-1">{{ $categoryCount }}</h3>
+                        <span class="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-sm">
+                            <i class="fas fa-tags mr-1"></i> Berbeda
+                        </span>
+                    </div>
+                    <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
+                        <i class="fas fa-tags text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+
             <!-- Card 3: Input Hari Ini (Emerald Gradient) -->
             <div class="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-400 rounded-3xl p-6 shadow-xl text-white transform hover:-translate-y-2 transition-transform duration-300">
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
                 <div class="relative z-10 flex justify-between items-start">
                     <div>
                         <p class="text-emerald-100 font-semibold tracking-wider uppercase text-xs">Input Hari Ini</p>
-                        <h3 class="text-4xl font-extrabold mt-1">{{ \App\Models\Logbook::whereDate('tanggal', today())->count() }}</h3>
+                        <h3 class="text-4xl font-extrabold mt-1">{{ $todayCount }}</h3>
                         <span class="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-sm">
                             <i class="fas fa-calendar-check mr-1"></i> Log Baru
                         </span>
@@ -78,7 +104,21 @@
                 </div>
             </div>
         </div>
-    </div>
+
+        <div class="mb-8 rounded-3xl border border-amber-200 bg-amber-50 p-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold text-amber-800">Pendeteksian Duplikat</p>
+                <p class="mt-2 text-sm text-amber-700 max-w-2xl">Klik tombol di sebelah kanan untuk memindai entri duplikat atau mirip berdasarkan tanggal dan isi log. Data hasil scan akan ditandai di tabel.</p>
+                @if($duplicateCount > 0)
+                    <p class="mt-3 text-xs text-amber-900 font-semibold">{{ $duplicateCount }} entri duplikat telah terdeteksi dalam halaman ini.</p>
+                @endif
+            </div>
+            <a href="{{ route('admin.monitoring', array_merge(request()->query(), ['scan_duplicates' => 1])) }}"
+               class="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-amber-500/20 hover:bg-amber-700 transition">
+                <i class="fas fa-search-plus"></i>
+                Scan Duplikat
+            </a>
+        </div>
 
     <!-- FILTER & PENCARIAN (Colorful Container) -->
     <div class="bg-white rounded-3xl shadow-xl border border-gray-100 mb-10 overflow-hidden relative">
@@ -91,12 +131,7 @@
                     <i class="fas fa-filter text-xl"></i>
                 </div>
                 <h3 class="text-lg font-bold text-gray-800">Filter Data Tabel</h3>
-                @if(request()->has('user_id') || request()->has('search') || request()->has('start_date'))
-                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold">Filter Aktif</span>
-                @endif
-            </div>
-
-            <form action="{{ route('admin.monitoring') }}" method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                    @if(request()->has('user_id') || request()->has('search') || request()->has('start_date') || request()->has('duplicate'))
                 <!-- Filter Pegawai -->
                 <div class="md:col-span-3">
                     <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Pegawai</label>
@@ -140,6 +175,18 @@
                     </div>
                 </div>
 
+                <!-- Filter Status Duplikat -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Status Duplikat</label>
+                    <div class="relative group">
+                        <select name="duplicate" class="w-full border-gray-200 bg-gray-50 rounded-xl text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all hover:bg-white py-2.5 px-3">
+                            <option value="">Semua Entri</option>
+                            <option value="1" {{ request('duplicate') === '1' ? 'selected' : '' }}>Hanya Duplikat</option>
+                            <option value="0" {{ request('duplicate') === '0' ? 'selected' : '' }}>Tanpa Duplikat</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Tombol -->
                 <div class="md:col-span-2 flex gap-2">
                     <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5">
@@ -149,6 +196,7 @@
                         <i class="fas fa-undo"></i>
                     </a>
                 </div>
+                @endif
             </form>
         </div>
     </div>
@@ -159,36 +207,39 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
                     <tr>
-                        <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider w-64 rounded-tl-lg">
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider w-52 rounded-tl-lg">
                             <i class="fas fa-user-circle mr-2 opacity-70"></i>Pegawai
                         </th>
-                        <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider w-40">
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider w-36">
                             <i class="fas fa-clock mr-2 opacity-70"></i>Waktu
                         </th>
-                        <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider w-40">
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider w-36">
                             <i class="fas fa-map-marked-alt mr-2 opacity-70"></i>Lokasi
                         </th>
-                        <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider w-1/4">
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider w-1/4">
                             <i class="fas fa-tasks mr-2 opacity-70"></i>Kegiatan
                         </th>
-                        <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider">
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider w-28">
+                            <i class="fas fa-tags mr-2 opacity-70"></i>Kategori
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">
                             <i class="fas fa-check-circle mr-2 opacity-70"></i>Output
                         </th>
                         <!-- Kolom Baru Link Bukti -->
-                        <th class="px-6 py-5 text-left text-xs font-bold uppercase tracking-wider w-40">
+                        <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider w-36">
                             <i class="fas fa-link mr-2 opacity-70"></i>Link Bukti
                         </th>
                         <!-- Kolom Foto -->
-                        <th class="px-6 py-5 text-center text-xs font-bold uppercase tracking-wider w-24 rounded-tr-lg">
+                        <th class="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-20 rounded-tr-lg">
                             <i class="fas fa-image mr-2 opacity-70"></i>Foto
                         </th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse($logs as $index => $log)
-                    <tr class="hover:bg-blue-50/40 transition-colors duration-200 {{ $index % 2 == 0 ? 'bg-white' : 'bg-gray-50/50' }}">
+                    <tr class="transition-colors duration-200 {{ $log->is_duplicate ? 'bg-red-50 border-l-4 border-red-400 hover:bg-red-100/70' : ($index % 2 == 0 ? 'bg-white hover:bg-blue-50/40' : 'bg-gray-50/50 hover:bg-blue-50/40') }}">
                         <!-- Nama Pegawai -->
-                        <td class="px-6 py-4 align-top">
+                        <td class="px-4 py-3 align-top">
                             <div class="flex items-start gap-3">
                                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden shadow-md ring-2 ring-white">
                                     @if($log->user->profile_photo)
@@ -201,7 +252,7 @@
                                     <a href="{{ route('admin.monitoring', ['user_id' => $log->user_id]) }}" class="font-bold text-gray-900 hover:text-blue-600 hover:underline transition-colors block text-sm" title="Filter pegawai ini">
                                         {{ $log->user->name }}
                                     </a>
-                                    <div class="text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full inline-block mt-1 border border-gray-200">
+                                    <div class="text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full inline-block mt-2 border border-gray-200">
                                         {{ $log->user->email }}
                                     </div>
                                 </div>
@@ -209,7 +260,7 @@
                         </td>
 
                         <!-- Waktu -->
-                        <td class="px-6 py-4 align-top">
+                        <td class="px-4 py-3 align-top">
                             <div class="flex flex-col">
                                 <span class="text-sm font-bold text-gray-800 bg-gray-100 px-2 py-1 rounded-md w-fit border border-gray-200">
                                     {{ \Carbon\Carbon::parse($log->tanggal)->format('d M Y') }}
@@ -222,7 +273,7 @@
                         </td>
 
                         <!-- Lokasi -->
-                        <td class="px-6 py-4 align-top">
+                        <td class="px-4 py-3 align-top">
                             <div class="text-sm text-gray-700 flex items-start gap-2 bg-red-50 p-2 rounded-lg border border-red-100 group hover:border-red-200 transition">
                                 <i class="fas fa-map-pin text-red-500 mt-1 text-xs group-hover:animate-bounce"></i>
                                 <span class="font-medium text-xs leading-relaxed">{{ $log->lokasi }}</span>
@@ -230,7 +281,7 @@
                         </td>
 
                         <!-- Kegiatan -->
-                        <td class="px-6 py-4 align-top">
+                        <td class="px-4 py-3 align-top">
                             <span class="inline-block bg-gradient-to-r from-blue-50 to-indigo-50 text-indigo-700 text-[10px] px-2 py-1 rounded-md border border-indigo-100 font-bold mb-2 tracking-wide uppercase">
                                 Sasaran SKP
                             </span>
@@ -241,15 +292,19 @@
                             </p>
                         </td>
 
+                        <td class="px-4 py-3 align-top">
+                            @include('components.kategori-badge', ['logbook' => $log])
+                        </td>
+
                         <!-- Output -->
-                        <td class="px-6 py-4 align-top">
+                        <td class="px-4 py-3 align-top">
                             <span class="inline-flex items-center gap-1 bg-green-50 text-green-700 px-2.5 py-1 rounded-lg text-xs font-semibold border border-green-100">
                                 <i class="fas fa-check-circle text-xs"></i> {{ $log->output }}
                             </span>
                         </td>
 
                         <!-- Link Bukti (Kolom Baru) -->
-                        <td class="px-6 py-4 align-top">
+                        <td class="px-4 py-3 align-top">
                             @if($log->link_bukti)
                                 <a href="{{ $log->link_bukti }}" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline text-xs break-all block p-2 bg-blue-50 rounded-lg border border-blue-100 transition hover:bg-blue-100">
                                     <i class="fas fa-external-link-alt mr-1"></i>
@@ -261,7 +316,7 @@
                         </td>
 
                         <!-- Bukti (Foto Saja) -->
-                        <td class="px-6 py-4 align-top text-center">
+                        <td class="px-4 py-3 align-top text-center">
                             @if($log->bukti_foto)
                                 <a href="{{ asset('storage/' . $log->bukti_foto) }}" target="_blank" class="inline-block group relative" title="Lihat Foto">
                                     <img src="{{ asset('storage/' . $log->bukti_foto) }}" class="w-12 h-12 object-cover rounded-xl border-2 border-white shadow-md group-hover:scale-150 transition-transform duration-300 z-10 cursor-zoom-in">
@@ -275,7 +330,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-20 text-center">
+                        <td colspan="8" class="px-4 py-16 text-center">
                             <div class="flex flex-col items-center justify-center">
                                 <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                                     <i class="fas fa-folder-open text-4xl text-gray-300"></i>
